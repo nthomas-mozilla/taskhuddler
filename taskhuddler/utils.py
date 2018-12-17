@@ -2,6 +2,7 @@
 from collections import namedtuple
 from contextlib import ExitStack, contextmanager
 
+import os
 import s3fs
 
 
@@ -69,3 +70,9 @@ def merge_date_list(dt_list):
         dt_list.append(current)
 
     return sorted(result)
+
+
+def tc_options():
+    return {
+        'rootUrl': os.environ.get('TASKCLUSTER_ROOT_URL', 'https://taskcluster.net'),
+    }
