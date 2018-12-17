@@ -61,7 +61,7 @@ class TaskGraph(object):
                 return True
             return False
 
-        queue = Queue()
+        queue = Queue(options={'rootUrl': 'https://taskcluster.net'})
         outcome = queue.listTaskGroup(self.groupid, query=query)
         tasks = outcome.get('tasks', [])
         while under_limit(len(tasks)) and outcome.get('continuationToken'):
