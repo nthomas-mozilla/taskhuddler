@@ -101,3 +101,11 @@ class Task(object):
     def scopes(self):
         """Return a list of the scopes used, if any."""
         return self.json['task'].get('scopes', [])
+
+    @property
+    def tier(self):
+        """Return the task's tier, defaulting to 1 if not present"""
+        try:
+            return self.json['task']['extra']['treeherder']['tier']
+        except KeyError:
+            return 1
