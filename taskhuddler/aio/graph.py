@@ -9,6 +9,7 @@ from taskcluster.aio import Queue
 
 from taskhuddler.graph import TaskGraph as SyncTaskGraph
 from taskhuddler.task import Task
+from taskhuddler.utils import tc_options
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class TaskGraph(SyncTaskGraph):
             return False
 
         async with aiohttp.ClientSession() as session:
-            queue = Queue(session=session)
+            queue = Queue(options=tc_options(), session=session)
             outcome = await queue.listTaskGroup(self.groupid, query=query)
             tasks = outcome.get('tasks', [])
 
