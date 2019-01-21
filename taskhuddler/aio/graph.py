@@ -22,9 +22,13 @@ class TaskGraph(SyncTaskGraph):
         self.groupid = groupid
         self.tasklist = None
 
+        # if multiple caches are defined use the first as the primary
         if 'TC_CACHE_DIR' in os.environ:
-            self.cache_file = os.path.join(os.environ.get('TC_CACHE_DIR'), "{}.json".format(self.groupid))
+            self.cache_files = [os.path.join(c, "{}.json".format(self.groupid)) for c in
+                                os.environ['TC_CACHE_DIR'].split(";")]
+            self.cache_file = self.cache_files[0]
         else:
+            self.cache_files = []
             self.cache_file = None
 
         await self.fetch_tasks()

@@ -22,9 +22,13 @@ class TaskGraph(object):
         self.groupid = groupid
         self.tasklist = None
 
+        # if multiple caches are defined use the first as the primary
         if 'TC_CACHE_DIR' in os.environ:
-            self.cache_file = os.path.join(os.environ.get('TC_CACHE_DIR'), "{}.json".format(self.groupid))
+            self.cache_files = [os.path.join(c, "{}.json".format(self.groupid)) for c in
+                                os.environ['TC_CACHE_DIR'].split(";")]
+            self.cache_file = self.cache_files[0]
         else:
+            self.cache_files = []
             self.cache_file = None
 
         self.fetch_tasks()
@@ -81,15 +85,22 @@ class TaskGraph(object):
     def _write_file_cache(self):
         with open_wrapper(self.cache_file, 'w') as f:
             json.dump(self.tasks(as_json=True), f)
+        log.debug('wrote %s, %s', self.cache_file, os.path.abspath(self.cache_file))
 
     def _read_file_cache(self):
-        try:
-            with open_wrapper(self.cache_file, 'r') as f:
-                jsondata = json.load(f)
-                self.tasklist = [Task(json=data) for data in jsondata]
-        except Exception as e:
-            return False
-        return True
+        for cache_file in self.cache_files:
+            log.debug('Trying %s' % cache_file)
+            try:
+                with open_wrapper(cache_file, 'r') as f:
+                    jsondata = json.load(f)
+                    self.tasklist = [Task(json=data) for data in jsondata]
+                    if cache_file != self.cache_file:
+                        self._write_file_cache()
+                    return True
+            except Exception as e:
+                log.debug('Hit %s' % e)
+        log.debug("Couldn't load from cache")
+        return False
 
     def tasks(self, limit=None, as_json=False):
         """Return all tasks in the graph."""
